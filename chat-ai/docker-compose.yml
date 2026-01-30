@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: chatai-postgres
+    restart: always
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chatai
+
+    # 🔴 CHANGED PORT (host:container)
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - chatai_pgdata:/var/lib/postgresql/data
+
+    command: >
+      postgres
+      -c password_encryption=md5
+
+  redis:
+    image: redis:7
+    container_name: chatai-redis
+    restart: always
+
+    # 🔴 CHANGED PORT (host:container)
+    ports:
+      - "6380:6379"
+
+volumes:
+  chatai_pgdata:

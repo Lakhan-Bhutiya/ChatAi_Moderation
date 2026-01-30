@@ -1,0 +1,19 @@
+{
+    "name": "moderation-worker",
+    "version": "1.0.0",
+    "private": true,
+    "type": "commonjs",
+    "scripts": {
+        "start": "ts-node src/main.ts"
+    },
+    "dependencies": {
+        "bullmq": "^5.0.0",
+        "groq-sdk": "^0.37.0",
+        "ioredis": "^5.3.2",
+        "pg": "^8.17.2",
+        "reflect-metadata": "^0.2.2",
+        "ts-node": "^10.9.2",
+        "typeorm": "^0.3.28",
+        "typescript": "^5.3.3"
+    }
+}

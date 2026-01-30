@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables (SENSITIVE)
+.env
+.env.test
+.env.production
+
+# IDE folders
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+thumbs.db
