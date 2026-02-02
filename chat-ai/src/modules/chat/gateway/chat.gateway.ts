@@ -70,9 +70,15 @@ export class ChatGateway implements OnGatewayConnection {
     });
 
     const saved = await this.messageRepo.save(message);
+    
+    // Load user relation for the message
+    const messageWithUser = await this.messageRepo.findOne({
+      where: { id: saved.id },
+      relations: ['user'],
+    });
 
     // 2️⃣ emit immediately (pending)
-    this.server.to(payload.roomId).emit('newMessage', saved);
+    this.server.to(payload.roomId).emit('newMessage', messageWithUser);
 
     // 3️⃣ publish to redis for moderation
     console.log('📡 publishing to redis', saved.id);
@@ -88,12 +94,12 @@ export class ChatGateway implements OnGatewayConnection {
     );
     
   }
-  broadcastDeletion(event: any) {
+  broadcastRemoval(event: any) {
     this.server.to(event.roomId).emit('messageRemoved', event);
   }
   
-  broadcastApproval(event: any) {
-    this.server.to(event.roomId).emit('messageApproved', event);
+  broadcastApproval(messageId: string, roomId: string) {
+    this.server.to(roomId).emit('messageApproved', { messageId });
   }
   
 }

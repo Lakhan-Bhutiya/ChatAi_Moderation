@@ -2,16 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ChatAI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatAI - AI Moderated Chat</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app">
-    <div id="messages"></div>
+    <!-- Header -->
+    <div id="header">
+      <div class="header-content">
+        <h1>💬 ChatBook</h1>
+        <div class="header-right">
+          <div id="connectionStatus" class="status disconnected">
+            <span class="status-dot"></span>
+            <span class="status-text">Disconnected</span>
+          </div>
+          <div id="authButtons" class="auth-buttons">
+            <button id="showLoginBtn" class="btn-auth">Login</button>
+            <button id="showSignupBtn" class="btn-auth btn-primary-small">Sign Up</button>
+          </div>
+          <div id="userMenu" class="user-menu hidden">
+            <div class="user-info-display">
+              <span id="usernameDisplay" class="username-display"></span>
+              <span id="tierDisplay" class="tier-display"></span>
+            </div>
+            <button id="logoutBtn" class="btn-auth btn-secondary-small">Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <div id="inputBar">
-      <input id="messageInput" placeholder="Type a message..." />
-      <button id="sendBtn">Send</button>
+    <!-- Auth Modals -->
+    <div id="authModal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="authModalTitle">Login</h2>
+          <button class="modal-close" id="closeAuthModal">&times;</button>
+        </div>
+        <div id="loginForm" class="auth-form">
+          <input type="text" id="loginUsername" placeholder="Username" />
+          <input type="password" id="loginPassword" placeholder="Password" />
+          <button id="loginBtn" class="btn-primary">Login</button>
+          <p class="auth-switch">Don't have an account? <a href="#" id="switchToSignup">Sign up</a></p>
+        </div>
+        <div id="signupForm" class="auth-form hidden">
+          <input type="text" id="signupUsername" placeholder="Username (3-20 chars)" />
+          <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" />
+          <button id="signupBtn" class="btn-primary">Sign Up</button>
+          <p class="auth-switch">Already have an account? <a href="#" id="switchToLogin">Login</a></p>
+        </div>
+        <div id="authError" class="auth-error hidden"></div>
+      </div>
+    </div>
+
+    <!-- Room Selection -->
+    <div id="roomSelector" class="panel">
+      <h2>Join a Room</h2>
+      <div class="room-input-group">
+        <input 
+          type="text" 
+          id="roomInput" 
+          placeholder="Enter room ID (e.g., room-1)" 
+          value="room-1"
+        />
+        <button id="joinBtn" class="btn-primary">Join Room</button>
+      </div>
+      <div class="quick-rooms">
+        <p>Quick Join:</p>
+        <div class="room-buttons">
+          <button class="room-btn" data-room="room-1">Room 1</button>
+          <button class="room-btn" data-room="room-2">Room 2</button>
+          <button class="room-btn" data-room="room-3">Room 3</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div id="chatArea" class="hidden">
+      <div id="roomInfo" class="room-info">
+        <span id="currentRoom">room-1</span>
+        <button id="leaveRoomBtn" class="btn-secondary">Leave</button>
+      </div>
+      
+      <div id="messages" class="messages-container">
+        <div id="loadingMessages" class="loading">Loading messages...</div>
+      </div>
+
+      <div id="inputBar" class="input-bar">
+        <input 
+          id="messageInput" 
+          placeholder="Type a message..." 
+          maxlength="500"
+        />
+        <button id="sendBtn" class="btn-send">Send</button>
+      </div>
     </div>
   </div>
 

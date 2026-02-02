@@ -11,7 +11,7 @@ export class ModerationQueueProducer {
     this.queue = new Queue('moderation-queue', {
       connection: {
         host: '127.0.0.1',
-        port: 6379,
+        port: 6380,
       },
     });
   }

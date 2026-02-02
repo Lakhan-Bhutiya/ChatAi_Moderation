@@ -6,7 +6,7 @@ import { ChatGateway } from '../../modules/chat/gateway/chat.gateway';
 export class MessageDeletedSubscriber implements OnModuleInit {
   private readonly redisSub = new Redis({
     host: '127.0.0.1',
-    port: 6379,
+    port: 6380,
   });
 
   constructor(private readonly chatGateway: ChatGateway) {}
@@ -23,7 +23,7 @@ export class MessageDeletedSubscriber implements OnModuleInit {
       }
 
       if (_channel === 'moderation.message.approved') {
-        this.chatGateway.broadcastApproved(
+        this.chatGateway.broadcastApproval(
           event.messageId,
           event.roomId,
         );

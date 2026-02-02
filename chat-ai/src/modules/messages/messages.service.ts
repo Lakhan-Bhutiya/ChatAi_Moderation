@@ -15,10 +15,15 @@ export class MessagesService {
     limit = 50,
     before?: Date,
   ) {
+    // Return approved + pending (old history). Removed messages excluded.
     const qb = this.messageRepo
       .createQueryBuilder('m')
+      .leftJoinAndSelect('m.user', 'user')
       .where('m.roomId = :roomId', { roomId })
-      .andWhere('m.status = :status', { status: 'approved' })
+      .andWhere('(m.status = :approved OR m.status = :pending)', {
+        approved: 'approved',
+        pending: 'pending',
+      })
       .orderBy('m.createdAt', 'DESC')
       .take(limit);
 

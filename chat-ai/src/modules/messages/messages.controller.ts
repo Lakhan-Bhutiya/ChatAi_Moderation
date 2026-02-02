@@ -1,11 +1,11 @@
-import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { HttpRateLimitGuard } from 'src/common/guards/http-rate-limit.guard';
 import { RedisHttpRateLimitGuard } from 'src/common/guards/redis-http-rate-limit.guard';
-@UseGuards(JwtAuthGuard, HttpRateLimitGuard,RedisHttpRateLimitGuard)
+
 @Controller('messages')
-@UseGuards(JwtAuthGuard) // 🔒 PROTECTED
+@UseGuards(JwtAuthGuard, HttpRateLimitGuard, RedisHttpRateLimitGuard)
 export class MessagesController {
   constructor(
     private readonly messagesService: MessagesService,
@@ -18,9 +18,11 @@ export class MessagesController {
     @Query('limit') limit?: string,
     @Query('before') before?: string,
   ) {
-    // req.user.id is now trusted
+    if (!roomId || typeof roomId !== 'string' || !roomId.trim()) {
+      throw new BadRequestException('roomId is required');
+    }
     return this.messagesService.getRoomMessages(
-      roomId,
+      roomId.trim(),
       limit ? Number(limit) : 50,
       before ? new Date(before) : undefined,
     );

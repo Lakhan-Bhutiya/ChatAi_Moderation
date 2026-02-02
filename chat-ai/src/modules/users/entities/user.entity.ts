@@ -23,6 +23,9 @@ export class User {
   @Column({ type: 'varchar', length: 100 })
   username: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  password: string | null;
+
   // ---------- Reputation ----------
   @Column({ type: 'int', default: 50 })
   reputationScore: number;

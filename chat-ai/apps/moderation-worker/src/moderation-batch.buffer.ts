@@ -81,6 +81,15 @@ export class BatchBuffer {
           `✅ Clean message | user=${user.id} score=${user.reputationScore}`,
         );
 
+        // 🔥 Notify API via Redis
+        await redisPub.publish(
+          'moderation.message.approved',
+          JSON.stringify({
+            messageId: msg.id,
+            roomId: msg.roomId,
+          }),
+        );
+
         continue;
       }
 

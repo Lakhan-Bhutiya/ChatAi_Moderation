@@ -1,21 +1,24 @@
 import 'reflect-metadata';
-import { redisSub } from './redis.client';
-import { WorkerDataSource } from './data-source';
+import { WorkerDataSource } from './db';
 import { BatchBuffer } from './moderation-batch.buffer';
+import { MessageCreatedSubscriber } from './message-created.subscriber';
+import { Message } from './message.entity';
+import { User } from './user.entity';
 
 async function bootstrap() {
   await WorkerDataSource.initialize();
 
   console.log('🟥 Moderation worker started (DB enabled)');
 
-  const buffer = new BatchBuffer(5000, WorkerDataSource);
+  const messageRepo = WorkerDataSource.getRepository(Message);
+  const userRepo = WorkerDataSource.getRepository(User);
+  
+  const buffer = new BatchBuffer(5000, messageRepo, userRepo);
+  const subscriber = new MessageCreatedSubscriber(messageRepo, userRepo, buffer);
 
-  redisSub.subscribe('moderation.queue');
-
-  redisSub.on('message', (_channel, payload) => {
-    const msg = JSON.parse(payload);
-    buffer.add(msg);
-  });
+  await subscriber.start();
+  
+  console.log('✅ Moderation worker ready');
 }
 
 bootstrap();
