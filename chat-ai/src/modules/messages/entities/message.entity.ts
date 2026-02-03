@@ -26,13 +26,13 @@ export class Message {
   user: User;
 
   @Index()
-  @Column()
+  @Column({ nullable: true })
   roomId: string;
 
   @Column({ type: 'text' })
   content: string;
 
-  // 🔥 NEW — lifecycle
+
   @Index()
   @Column({
     type: 'enum',
@@ -54,6 +54,6 @@ export class Message {
   @Column({ type: 'timestamp', nullable: true })
   moderatedAt: Date | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 }

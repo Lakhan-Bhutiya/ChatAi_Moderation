@@ -43,6 +43,9 @@ export class User {
   @Column({ type: 'boolean', default: false })
   warningIssued: boolean;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  mutedUntil: Date | null;
+
   // ---------- Meta ----------
   @CreateDateColumn()
   createdAt: Date;

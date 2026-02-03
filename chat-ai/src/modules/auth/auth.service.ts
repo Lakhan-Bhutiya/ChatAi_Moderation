@@ -1,3 +1,4 @@
+import { redis } from '../../common/redis/redis.client';
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,14 +13,14 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly jwt: JwtService,
-  ) {}
+  ) { }
 
   async createGuest() {
     const user = this.userRepo.create({
       id: randomUUID(),
       username: `guest_${Math.random().toString(36).slice(2, 8)}`,
-      reputationScore: 100, // Start at neutral
-      tier: 'trusted' as any,
+      reputationScore: 50, // Start at neutral
+      tier: 'neutral' as any,
     });
 
     await this.userRepo.save(user);
@@ -136,5 +137,28 @@ export class AuthService {
       tier: user.tier,
       reputationScore: user.reputationScore,
     };
+  }
+
+  async logout(token: string) {
+    try {
+      // Decode without verifying first to get expiration
+      const decoded: any = this.jwt.decode(token);
+
+      if (!decoded || !decoded.exp) {
+        return { message: 'Already invalid' };
+      }
+
+      const timeLeft = decoded.exp - Math.floor(Date.now() / 1000);
+
+      // Only blacklist if token is still valid
+      if (timeLeft > 0) {
+        await redis.set(`blacklist:${token}`, 'true', 'EX', timeLeft);
+      }
+
+      return { message: 'Logged out successfully' };
+    } catch (e) {
+      console.error('Logout error:', e);
+      return { message: 'Logout failed' };
+    }
   }
 }

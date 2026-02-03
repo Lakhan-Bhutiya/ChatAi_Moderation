@@ -8,5 +8,5 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   password: 'postgres',
   database: 'chatai',
   autoLoadEntities: true,
-  synchronize: false,
+  synchronize: true,
 };

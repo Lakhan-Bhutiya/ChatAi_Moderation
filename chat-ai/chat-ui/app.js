@@ -1,4 +1,5 @@
 // DOM Elements
+const API_URL = `http://${window.location.hostname}:3000`;
 const messagesEl = document.getElementById('messages');
 const inputEl = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendBtn');
@@ -73,7 +74,7 @@ function clearAuthStorage() {
 // 1️⃣ Authentication
 async function guestLogin() {
   try {
-    const res = await fetch('http://localhost:3000/auth/guest', {
+    const res = await fetch(`${API_URL}/auth/guest`, {
       method: 'POST',
     });
     const data = await res.json();
@@ -94,7 +95,7 @@ async function guestLogin() {
 
 async function login(usernameInput, password) {
   try {
-    const res = await fetch('http://localhost:3000/auth/login', {
+    const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: usernameInput, password }),
@@ -124,7 +125,7 @@ async function login(usernameInput, password) {
 
 async function signup(usernameInput, password) {
   try {
-    const res = await fetch('http://localhost:3000/auth/signup', {
+    const res = await fetch(`${API_URL}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: usernameInput, password }),
@@ -152,7 +153,18 @@ async function signup(usernameInput, password) {
   }
 }
 
-function logout() {
+async function logout() {
+  if (token) {
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    } catch (e) {
+      console.error('Logout API failed', e);
+    }
+  }
+
   token = null;
   userId = null;
   username = null;
@@ -177,20 +189,20 @@ function updateUserUI() {
     authButtons.classList.add('hidden');
     userMenu.classList.remove('hidden');
     usernameDisplay.textContent = username;
-    
+
     // Update tier display
     const tierColors = {
       trusted: '#10b981', // green
       neutral: '#f59e0b', // amber
       suspect: '#ef4444', // red
     };
-    
+
     const tierLabels = {
       trusted: '⭐ Trusted',
       neutral: '⚖️ Neutral',
       suspect: '⚠️ Suspect',
     };
-    
+
     tierDisplay.textContent = tierLabels[userTier] || tierLabels.neutral;
     tierDisplay.style.color = tierColors[userTier] || tierColors.neutral;
     tierDisplay.title = `Reputation Score: ${reputationScore}/100`;
@@ -202,14 +214,14 @@ function updateUserUI() {
 
 async function refreshUserInfo() {
   if (!token) return;
-  
+
   try {
-    const res = await fetch('http://localhost:3000/auth/me', {
+    const res = await fetch(`${API_URL}/auth/me`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
-    
+
     if (res.ok) {
       const data = await res.json();
       userTier = data.tier || 'neutral';
@@ -256,7 +268,7 @@ function connectSocket() {
     return;
   }
 
-  socket = io('http://localhost:3000', {
+  socket = io(API_URL, {
     auth: { token },
     reconnection: true,
     reconnectionDelay: 1000,
@@ -279,6 +291,11 @@ function connectSocket() {
   socket.on('connect_error', (error) => {
     console.error('Connection error:', error);
     updateConnectionStatus(false);
+  });
+
+  socket.on('error', (data) => {
+    console.error('Socket error:', data);
+    showNotification(data.message || 'An error occurred', 'error');
   });
 
   socket.on('newMessage', (msg) => {
@@ -344,7 +361,7 @@ async function joinRoom(roomId) {
       return;
     }
     const res = await fetch(
-      `http://localhost:3000/messages?roomId=${encodeURIComponent(currentRoom)}&limit=50`,
+      `${API_URL}/messages?roomId=${encodeURIComponent(currentRoom)}&limit=50`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,

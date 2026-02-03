@@ -3,12 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Message } from './entities/message.entity';
 import { MessagesService } from './messages.service';
 import { MessagesController } from './messages.controller';
-import { JwtModule } from '@nestjs/jwt';
+import { AuthModule } from '../auth/auth.module';
+
 @Module({
   imports: [TypeOrmModule.forFeature([Message]),
-  JwtModule.register({}),],
+    AuthModule,],
   providers: [MessagesService],
   controllers: [MessagesController],
   exports: [MessagesService],
 })
-export class MessagesModule {}
+export class MessagesModule { }

@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { Message } from './message.entity';
 import { User } from './user.entity';
-import { moderateContent } from './moderation-engine';
+import { moderateContentBatch } from './moderation-engine';
 import {
   REPUTATION_LIMITS,
   CLEAN_REWARD_THRESHOLD,
@@ -20,7 +20,7 @@ export class BatchBuffer {
     private readonly flushIntervalMs: number,
     private readonly messageRepo: Repository<Message>,
     private readonly userRepo: Repository<User>,
-  ) {}
+  ) { }
 
   add(message: Message) {
     this.buffer.push(message);
@@ -46,8 +46,14 @@ export class BatchBuffer {
     this.buffer = [];
     this.timer = null;
 
-    for (const msg of messages) {
-      const result = await moderateContent(msg.content);
+    const contents = messages.map(msg => msg.content);
+
+    //  NEW: True Batching (One API call for everyone)
+    const batchResults = await moderateContentBatch(contents);
+
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      const result = batchResults[i];
 
       const user = await this.userRepo.findOneBy({ id: msg.userId });
       if (!user) continue;
@@ -73,9 +79,9 @@ export class BatchBuffer {
         await this.userRepo.save(user);
 
         AppLogger.info('moderation.approved', {
-            messageId: msg.id,
-            userId: msg.userId,
-          });
+          messageId: msg.id,
+          userId: msg.userId,
+        });
 
         console.log(
           `✅ Clean message | user=${user.id} score=${user.reputationScore}`,
@@ -89,53 +95,51 @@ export class BatchBuffer {
             roomId: msg.roomId,
           }),
         );
-
-        continue;
-      }
-
-      // 🔴 FLAGGED MESSAGE
-      msg.status = 'removed';
-      msg.deleted = true;
-      msg.severity = result.severity;
-      msg.moderatedAt = new Date();
-      await this.messageRepo.save(msg);
-
-      if (result.severity === 'major') {
-        user.reputationScore = Math.max(
-          REPUTATION_LIMITS.MIN,
-          user.reputationScore - PENALTY.MAJOR_MIN,
-        );
       } else {
-        user.reputationScore = Math.max(
-          REPUTATION_LIMITS.MIN,
-          user.reputationScore - PENALTY.MINOR,
+        // 🔴 FLAGGED MESSAGE
+        msg.status = 'removed';
+        msg.deleted = true;
+        msg.severity = result.severity;
+        msg.moderatedAt = new Date();
+        await this.messageRepo.save(msg);
+
+        if (result.severity === 'major') {
+          user.reputationScore = Math.max(
+            REPUTATION_LIMITS.MIN,
+            user.reputationScore - PENALTY.MAJOR_MIN,
+          );
+        } else {
+          user.reputationScore = Math.max(
+            REPUTATION_LIMITS.MIN,
+            user.reputationScore - PENALTY.MINOR,
+          );
+        }
+
+        user.warningIssued = true;
+        user.cleanMessageCount = 0;
+        user.tier = calculateTier(user.reputationScore);
+        await this.userRepo.save(user);
+        AppLogger.warn('moderation.removed', {
+          messageId: msg.id,
+          userId: msg.userId,
+          severity: result.severity,
+        });
+
+        console.log(
+          `🗑️ Message removed [${result.severity}] | user=${user.id}`,
+        );
+
+        // 🔥 Notify API via Redis
+        await redisPub.publish(
+          'moderation.message.deleted',
+          JSON.stringify({
+            messageId: msg.id,
+            roomId: msg.roomId,
+            severity: result.severity,
+          }),
         );
       }
-
-      user.warningIssued = true;
-      user.cleanMessageCount = 0;
-      user.tier = calculateTier(user.reputationScore);
-      await this.userRepo.save(user);
-      AppLogger.warn('moderation.removed', {
-        messageId: msg.id,
-        userId: msg.userId,
-        severity: result.severity,
-      });
-      
-
-      console.log(
-        `🗑️ Message removed [${result.severity}] | user=${user.id}`,
-      );
-
-      // 🔥 Notify API via Redis
-      await redisPub.publish(
-        'moderation.message.deleted',
-        JSON.stringify({
-          messageId: msg.id,
-          roomId: msg.roomId,
-          severity: result.severity,
-        }),
-      );
     }
   }
 }
+
