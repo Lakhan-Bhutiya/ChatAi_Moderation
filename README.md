@@ -10,7 +10,7 @@ Welcome to **ChatAI**, a high-performance, real-time communication platform buil
 
 The system is split into two specialized micro-clusters:
 
-1.  **The Nexus (Main API)**: A NestJS-powered hub handling real-time WebSockets, JWT Authentication, and high-speed Postgres persistence.
+1.  **The Nexus (Main API)**: A NestJS-powered hub handling real-time WebSockets, JWT Authentication, and  Postgres persistence.
 2.  **The Arbiter (Moderation Worker)**: A standalone TypeScript process that consumes messages from a Redis pipeline and analyzes them using **Groq-LP (Llama 3)**.
 
 ### The Data Flow
