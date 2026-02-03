@@ -72,7 +72,7 @@ cd apps/moderation-worker
 npm start
 ```
 
-### Headless Access (The "Hacker" Way)
+### Headless Acces
 Don't want to use the UI? Use the diagnostic script to connect directly via terminal:
 ```bash
 node test-socket.js
