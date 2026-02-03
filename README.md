@@ -1,4 +1,4 @@
-#  ChatAI: Distributed AI-Orchestrated Communication Protocol
+#  ChatAI: Distributed AI Moderation Communication Protocol
 
 > **Status:** `STABLE` | **Architecture:** `DISTRIBUTED MESA` | **Moderation:** `TRUE-BATCH AI`
 
