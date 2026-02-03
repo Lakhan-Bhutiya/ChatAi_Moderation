@@ -80,10 +80,8 @@ node test-socket.js
 
 ---
 
-##  Standard Operating Procedures (Best Practices)
+##  Standard Operating Procedures 
 - **Graceful Degradation**: If the AI (Groq) fails, the system automatically falls back to a **RegEx-based Safety Net**.
 - **True Batching**: We don't call the AI for every message. We buffer messages and send them in bursts every 5 seconds to minimize API costs and maximize throughput.
 
 ---
-
-> Built by a Nerd for Nerds.
